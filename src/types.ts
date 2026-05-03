@@ -27,3 +27,11 @@ export type Mentor = BaseUser & {
 };
 
 export type User = Student | Mentor;
+
+export type Tab = "all" | "student" | "mentor";
+
+export type StudentSortKey = "studyMinutes" | "score";
+export type MentorSortKey = "experienceDays";
+export type SortKey = StudentSortKey | MentorSortKey;
+
+export type SortOrder = "asc" | "desc";
