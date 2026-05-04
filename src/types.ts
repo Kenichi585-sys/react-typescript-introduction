@@ -1,4 +1,4 @@
-type BaseUser = {
+export type BaseUser = {
   id: number;
   name: string;
   role: "student" | "mentor";
@@ -35,3 +35,10 @@ export type MentorSortKey = "experienceDays";
 export type SortKey = StudentSortKey | MentorSortKey;
 
 export type SortOrder = "asc" | "desc";
+
+export type NewStudent = Omit<Student, "id">;
+export type NewMentor = Omit<Mentor, "id">;
+export type NewUser = NewStudent | NewMentor;
+
+export type StudentRoleFields = Omit<NewStudent, keyof BaseUser>;
+export type MentorRoleFields = Omit<NewMentor, keyof BaseUser>;

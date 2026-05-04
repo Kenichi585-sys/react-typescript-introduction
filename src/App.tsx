@@ -3,17 +3,21 @@ import { UserTable } from "./components/UserTable";
 import { USER_LIST } from "./data";
 import {
   type Mentor,
+  type NewUser,
   type SortKey,
   type SortOrder,
   type Student,
   type Tab,
   type User,
 } from "./types";
+import { UserForm } from "./components/UserForm";
 
 export const App = () => {
   const [tab, setTab] = useState<Tab>("all");
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
+  const [userList, setUserList] = useState<User[]>(USER_LIST);
+  const [isFormOpen, setIsFormOpen] = useState(false);
 
   const toggleSortOrder = (current: SortOrder): SortOrder => {
     return current === "asc" ? "desc" : "asc";
@@ -53,6 +57,21 @@ export const App = () => {
     }
     filteredUsers = mentors;
   }
+
+  const handleAddUser = (newUser: NewUser) => {
+    if (newUser.role === "student") {
+      const id = userList.length + 1;
+      const student: Student = { ...newUser, id };
+      setUserList([...userList, student]);
+      setIsFormOpen(false);
+    } else if (newUser.role === "mentor") {
+      const id = userList.length + 1;
+      const mentor: Mentor = { ...newUser, id };
+      setUserList([...userList, mentor]);
+      setIsFormOpen(false);
+    }
+  };
+
   return (
     <div>
       <div>
@@ -97,6 +116,15 @@ export const App = () => {
           <button onClick={() => setSortOrder(toggleSortOrder(sortOrder))}>
             {sortOrder === "asc" ? "降順に切り替え" : "昇順に切り替え"}
           </button>
+        )}
+      </div>
+      <div>
+        <button onClick={() => setIsFormOpen(true)}>新規作成</button>
+        {isFormOpen && (
+          <UserForm
+            onSubmit={handleAddUser}
+            onCancel={() => setIsFormOpen(false)}
+          />
         )}
       </div>
       <div>
