@@ -27,9 +27,9 @@ export const App = () => {
   let mentors: Mentor[] = [];
 
   if (tab === "all") {
-    filteredUsers = USER_LIST;
+    filteredUsers = userList;
   } else if (tab === "student") {
-    students = USER_LIST.filter(
+    students = userList.filter(
       (user): user is Student => user.role === "student",
     );
     if (sortKey !== null) {
@@ -43,9 +43,7 @@ export const App = () => {
     }
     filteredUsers = students;
   } else if (tab === "mentor") {
-    mentors = USER_LIST.filter(
-      (user): user is Mentor => user.role === "mentor",
-    );
+    mentors = userList.filter((user): user is Mentor => user.role === "mentor");
     if (sortKey !== null) {
       mentors = [...mentors].sort((a, b) => {
         if (sortOrder === "asc") {
