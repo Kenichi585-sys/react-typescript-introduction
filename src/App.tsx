@@ -2,6 +2,7 @@ import { useState } from "react";
 import { UserTable } from "./components/UserTable";
 import { USER_LIST } from "./data";
 import {
+  type FilterKey,
   type Mentor,
   type NewUser,
   type SortKey,
@@ -18,42 +19,52 @@ export const App = () => {
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
   const [userList, setUserList] = useState<User[]>(USER_LIST);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [filterKey, setFilterKey] = useState<FilterKey | null>(null);
+  const [filterWord, setFilterWord] = useState<string>("");
 
   const toggleSortOrder = (current: SortOrder): SortOrder => {
     return current === "asc" ? "desc" : "asc";
   };
-  let filteredUsers: User[];
-  let students: Student[] = [];
-  let mentors: Mentor[] = [];
 
-  if (tab === "all") {
-    filteredUsers = userList;
-  } else if (tab === "student") {
-    students = userList.filter(
+  let result: User[] = userList;
+  if (tab === "student") {
+    result = userList.filter(
       (user): user is Student => user.role === "student",
     );
-    if (sortKey !== null) {
-      students = [...students].sort((a, b) => {
-        if (sortOrder === "asc") {
-          return a[sortKey] - b[sortKey];
-        } else {
-          return b[sortKey] - a[sortKey];
-        }
-      });
-    }
-    filteredUsers = students;
   } else if (tab === "mentor") {
-    mentors = userList.filter((user): user is Mentor => user.role === "mentor");
-    if (sortKey !== null) {
-      mentors = [...mentors].sort((a, b) => {
-        if (sortOrder === "asc") {
-          return a[sortKey] - b[sortKey];
-        } else {
-          return b[sortKey] - a[sortKey];
-        }
+    result = userList.filter((user): user is Mentor => user.role === "mentor");
+  }
+
+  if (sortKey !== null) {
+    result = [...result].sort((a, b) =>
+      sortOrder === "asc"
+        ? (a as any)[sortKey] - (b as any)[sortKey]
+        : (b as any)[sortKey] - (a as any)[sortKey],
+    );
+  }
+
+  if (filterWord !== "") {
+    if (filterKey === "hobbies") {
+      result = result.filter((user) =>
+        user.hobbies.some((hobby) =>
+          hobby.toLowerCase().includes(filterWord.toLowerCase()),
+        ),
+      );
+    } else if (filterKey === "studyLangs") {
+      result = result.filter((user) => {
+        if (user.role !== "student") return false;
+        return user.studyLangs.some((lang) =>
+          lang.toLowerCase().includes(filterWord.toLowerCase()),
+        );
+      });
+    } else if (filterKey === "useLangs") {
+      result = result.filter((user) => {
+        if (user.role !== "mentor") return false;
+        return user.useLangs.some((lang) =>
+          lang.toLowerCase().includes(filterWord.toLowerCase()),
+        );
       });
     }
-    filteredUsers = mentors;
   }
 
   const handleAddUser = (newUser: NewUser) => {
@@ -110,10 +121,41 @@ export const App = () => {
             実務経験月数
           </button>
         )}
-        {tab !== "all" && sortKey !== null && (
+        {sortKey !== null && (
           <button onClick={() => setSortOrder(toggleSortOrder(sortOrder))}>
             {sortOrder === "asc" ? "降順に切り替え" : "昇順に切り替え"}
           </button>
+        )}
+      </div>
+      <div>
+        <button onClick={() => setFilterKey("hobbies")}>
+          「趣味」でフィルター
+        </button>
+        {tab === "student" && (
+          <button onClick={() => setFilterKey("studyLangs")}>
+            「勉強中の言語」でフィルター
+          </button>
+        )}
+        {tab === "mentor" && (
+          <button onClick={() => setFilterKey("useLangs")}>
+            「現場で使っている言語」でフィルター
+          </button>
+        )}
+        {filterKey !== null && (
+          <>
+            <input
+              type="text"
+              onChange={(e) => setFilterWord(e.target.value)}
+            />
+            <button
+              onClick={() => {
+                setFilterKey(null);
+                setFilterWord("");
+              }}
+            >
+              キャンセル
+            </button>
+          </>
         )}
       </div>
       <div>
@@ -126,7 +168,7 @@ export const App = () => {
         )}
       </div>
       <div>
-        <UserTable users={filteredUsers} />
+        <UserTable users={result} />
       </div>
     </div>
   );

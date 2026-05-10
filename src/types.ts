@@ -42,3 +42,5 @@ export type NewUser = NewStudent | NewMentor;
 
 export type StudentRoleFields = Omit<NewStudent, keyof BaseUser>;
 export type MentorRoleFields = Omit<NewMentor, keyof BaseUser>;
+
+export type FilterKey = "hobbies" | "studyLangs" | "useLangs";
