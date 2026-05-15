@@ -21,6 +21,11 @@ export const App = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [filterKey, setFilterKey] = useState<FilterKey | null>(null);
   const [filterWord, setFilterWord] = useState<string>("");
+  const [errors, setErrors] = useState({
+    name: "",
+    email: "",
+    age: "",
+  });
 
   const toggleSortOrder = (current: SortOrder): SortOrder => {
     return current === "asc" ? "desc" : "asc";

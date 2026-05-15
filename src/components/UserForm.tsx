@@ -12,12 +12,22 @@ type Props = {
   onCancel: () => void;
 };
 
+type CommonFields = {
+  name: string;
+  email: string;
+  age: number | null;
+  postCode: string;
+  phone: string;
+  hobbies: string[];
+  url: string;
+};
+
 export const UserForm = ({ onSubmit, onCancel }: Props) => {
   const [role, setRole] = useState<"student" | "mentor">("student");
-  const [commonFields, setCommonFields] = useState({
+  const [commonFields, setCommonFields] = useState<CommonFields>({
     name: "",
     email: "",
-    age: 0,
+    age: null,
     postCode: "",
     phone: "",
     hobbies: [],
@@ -29,12 +39,29 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
   const [hobbiesInput, setHobbiesInput] = useState("");
   const [studyLangsInput, setStudyLangsInput] = useState("");
   const [useLangsInput, setUseLangsInput] = useState("");
+  const [errors, setErrors] = useState({
+    name: "",
+    email: "",
+    age: "",
+  });
 
   const handleSubmit = () => {
+    const newErrors = {
+      name: commonFields.name === "" ? "名前を入力してください" : "",
+      email: commonFields.email === "" ? "Eメールを入力してください" : "",
+      age: commonFields.age === null ? "年齢を入力してください" : "",
+    };
+
+    setErrors(newErrors);
+
+    if (Object.values(newErrors).some((newError) => newError !== "")) {
+      return;
+    }
     if (role === "student") {
       const newUser: NewStudent = {
         role,
         ...commonFields,
+        age: commonFields.age as number,
         hobbies: hobbiesInput.split(","),
         ...(roleFields as StudentRoleFields),
         studyLangs: studyLangsInput.split(","),
@@ -45,6 +72,7 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
         role,
         ...commonFields,
         hobbies: hobbiesInput.split(","),
+        age: commonFields.age as number,
         ...(roleFields as MentorRoleFields),
         useLangs: useLangsInput.split(","),
       };
@@ -88,39 +116,54 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
           <input
             type="text"
             placeholder="例：山田太郎"
-            onChange={(e) =>
+            onChange={(e) => {
               setCommonFields({
                 ...commonFields,
                 name: e.target.value,
-              })
-            }
+              });
+              setErrors({
+                ...errors,
+                name: "",
+              });
+            }}
           />
+          {errors.name !== "" && <p>{errors.name}</p>}
         </label>
         <label>
           メールアドレス
           <input
             type="text"
             placeholder="例：a@gmail.com"
-            onChange={(e) =>
+            onChange={(e) => {
               setCommonFields({
                 ...commonFields,
                 email: e.target.value,
-              })
-            }
+              });
+              setErrors({
+                ...errors,
+                email: "",
+              });
+            }}
           />
+          {errors.email !== "" && <p>{errors.email}</p>}
         </label>
         <label>
           年齢
           <input
             type="number"
             placeholder="例：30"
-            onChange={(e) =>
+            onChange={(e) => {
               setCommonFields({
                 ...commonFields,
-                age: Number(e.target.value),
-              })
-            }
+                age: e.target.value === "" ? null : Number(e.target.value),
+              });
+              setErrors({
+                ...errors,
+                age: "",
+              });
+            }}
           />
+          {errors.age !== "" && <p>{errors.age}</p>}
         </label>
         <label>
           郵便番号
