@@ -44,3 +44,6 @@ export type StudentRoleFields = Omit<NewStudent, keyof BaseUser>;
 export type MentorRoleFields = Omit<NewMentor, keyof BaseUser>;
 
 export type FilterKey = "hobbies" | "studyLangs" | "useLangs";
+
+export type StudentRoleErrors = Record<keyof StudentRoleFields, string>;
+export type MentorRoleErrors = Record<keyof MentorRoleFields, string>;
