@@ -21,14 +21,16 @@ export const App = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [filterKey, setFilterKey] = useState<FilterKey | null>(null);
   const [filterWord, setFilterWord] = useState<string>("");
-  const [errors, setErrors] = useState({
-    name: "",
-    email: "",
-    age: "",
-  });
 
   const toggleSortOrder = (current: SortOrder): SortOrder => {
     return current === "asc" ? "desc" : "asc";
+  };
+
+  const switchTab = (nextTab: Tab) => {
+    setTab(nextTab);
+    setSortKey(null);
+    setFilterKey(null);
+    setFilterWord("");
   };
 
   let result: User[] = userList;
@@ -87,92 +89,158 @@ export const App = () => {
   };
 
   return (
-    <div>
-      <div>
-        <button
-          onClick={() => {
-            setTab("all");
-            setSortKey(null);
-          }}
-        >
-          全員
-        </button>
-        <button
-          onClick={() => {
-            setTab("student");
-            setSortKey(null);
-          }}
-        >
-          生徒のみ
-        </button>
-        <button
-          onClick={() => {
-            setTab("mentor");
-            setSortKey(null);
-          }}
-        >
-          メンターのみ
-        </button>
-      </div>
-      <div>
-        {tab === "student" && (
-          <button onClick={() => setSortKey("studyMinutes")}>勉強時間</button>
-        )}
-        {tab === "student" && (
-          <button onClick={() => setSortKey("score")}>ハピネススコア順</button>
-        )}
-        {tab === "mentor" && (
-          <button onClick={() => setSortKey("experienceDays")}>
-            実務経験月数
-          </button>
-        )}
-        {sortKey !== null && (
-          <button onClick={() => setSortOrder(toggleSortOrder(sortOrder))}>
-            {sortOrder === "asc" ? "降順に切り替え" : "昇順に切り替え"}
-          </button>
-        )}
-      </div>
-      <div>
-        <button onClick={() => setFilterKey("hobbies")}>
-          「趣味」でフィルター
-        </button>
-        {tab === "student" && (
-          <button onClick={() => setFilterKey("studyLangs")}>
-            「勉強中の言語」でフィルター
-          </button>
-        )}
-        {tab === "mentor" && (
-          <button onClick={() => setFilterKey("useLangs")}>
-            「現場で使っている言語」でフィルター
-          </button>
-        )}
-        {filterKey !== null && (
-          <>
-            <input
-              type="text"
-              onChange={(e) => setFilterWord(e.target.value)}
-            />
+    <div className="app">
+      <div className="toolbar">
+        <div className="toolbar-row">
+          <span className="toolbar-label">表示</span>
+          <div className="toolbar-actions">
             <button
+              type="button"
+              className={`btn ${tab === "all" ? "btn-active" : ""}`}
+              onClick={() => switchTab("all")}
+            >
+              全員
+            </button>
+            <button
+              type="button"
+              className={`btn ${tab === "student" ? "btn-active" : ""}`}
+              onClick={() => switchTab("student")}
+            >
+              生徒のみ
+            </button>
+            <button
+              type="button"
+              className={`btn ${tab === "mentor" ? "btn-active" : ""}`}
+              onClick={() => switchTab("mentor")}
+            >
+              メンターのみ
+            </button>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => setIsFormOpen(true)}
+            >
+              新規作成
+            </button>
+          </div>
+        </div>
+        {(tab === "student" || tab === "mentor") && (
+          <div className="toolbar-row">
+            <span className="toolbar-label">並び替え</span>
+            <div className="toolbar-actions">
+              {tab === "student" && (
+                <>
+                  <button
+                    type="button"
+                    className={`btn ${sortKey === "studyMinutes" ? "btn-active" : ""}`}
+                    onClick={() => setSortKey("studyMinutes")}
+                  >
+                    勉強時間
+                  </button>
+                  <button
+                    type="button"
+                    className={`btn ${sortKey === "score" ? "btn-active" : ""}`}
+                    onClick={() => setSortKey("score")}
+                  >
+                    ハピネススコア
+                  </button>
+                </>
+              )}
+              {tab === "mentor" && (
+                <button
+                  type="button"
+                  className={`btn ${sortKey === "experienceDays" ? "btn-active" : ""}`}
+                  onClick={() => setSortKey("experienceDays")}
+                >
+                  実務経験月数
+                </button>
+              )}
+              {sortKey !== null && (
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={() => setSortOrder(toggleSortOrder(sortOrder))}
+                >
+                  {sortOrder === "asc" ? "降順" : "昇順"}
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+        <div className="toolbar-row">
+          <span className="toolbar-label">絞り込み</span>
+          <div className="toolbar-actions">
+            <button
+              type="button"
+              className={`btn ${filterKey === "hobbies" ? "btn-active" : ""}`}
               onClick={() => {
-                setFilterKey(null);
+                setFilterKey("hobbies");
                 setFilterWord("");
               }}
             >
-              キャンセル
+              趣味
             </button>
-          </>
-        )}
+            {tab === "student" && (
+              <button
+                type="button"
+                className={`btn ${filterKey === "studyLangs" ? "btn-active" : ""}`}
+                onClick={() => {
+                  setFilterKey("studyLangs");
+                  setFilterWord("");
+                }}
+              >
+                勉強中の言語
+              </button>
+            )}
+            {tab === "mentor" && (
+              <button
+                type="button"
+                className={`btn ${filterKey === "useLangs" ? "btn-active" : ""}`}
+                onClick={() => {
+                  setFilterKey("useLangs");
+                  setFilterWord("");
+                }}
+              >
+                現場言語
+              </button>
+            )}
+            {filterKey !== null && (
+              <>
+                <input
+                  type="text"
+                  className="filter-input"
+                  placeholder="キーワードを入力"
+                  value={filterWord}
+                  onChange={(e) => setFilterWord(e.target.value)}
+                />
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={() => {
+                    setFilterKey(null);
+                    setFilterWord("");
+                  }}
+                >
+                  解除
+                </button>
+              </>
+            )}
+          </div>
+        </div>
       </div>
-      <div>
-        <button onClick={() => setIsFormOpen(true)}>新規作成</button>
-        {isFormOpen && (
-          <UserForm
-            onSubmit={handleAddUser}
-            onCancel={() => setIsFormOpen(false)}
-          />
-        )}
-      </div>
-      <div>
+
+      {isFormOpen && (
+        <div className="modal-backdrop">
+          <div className="modal">
+            <UserForm
+              onSubmit={handleAddUser}
+              onCancel={() => setIsFormOpen(false)}
+            />
+          </div>
+        </div>
+      )}
+
+      <div className="table-wrap">
         <UserTable users={result} />
       </div>
     </div>

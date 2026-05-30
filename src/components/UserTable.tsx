@@ -15,7 +15,7 @@ const isStudent = (user: User): user is Student => {
 
 export const UserTable = (props: Props) => {
   return (
-    <table>
+    <table className="user-table">
       <thead>
         <tr>
           <th>名前</th>
