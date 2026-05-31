@@ -23,9 +23,45 @@ type CommonFields = {
   url: string;
 };
 
+type ListFieldItem = {
+  id: string;
+  value: string;
+};
+
+const createListFieldItem = (value = ""): ListFieldItem => ({
+  id: crypto.randomUUID(),
+  value,
+});
+
+const toListFieldValues = (items: ListFieldItem[]): string[] =>
+  items.map((item) => item.value);
+
 const FieldError = ({ message }: { message: string }) => (
   <p className="field-error">{message || "\u00A0"}</p>
 );
+
+const getAgeError = (age: number | null): string => {
+  if (age === null) {
+    return "年齢を入力してください";
+  }
+  if (age < 0) {
+    return "0以上の数を入力してください";
+  }
+  return "";
+};
+
+const getPositiveNumberError = (
+  value: number,
+  emptyMessage: string,
+): string => {
+  if (value === 0) {
+    return emptyMessage;
+  }
+  if (value < 0) {
+    return "0以上の数を入力してください";
+  }
+  return "";
+};
 
 export const UserForm = ({ onSubmit, onCancel }: Props) => {
   const [role, setRole] = useState<"student" | "mentor">("student");
@@ -40,9 +76,9 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
   const [roleFields, setRoleFields] = useState<
     StudentRoleFields | MentorRoleFields
   >({ studyMinutes: 0, taskCode: 0, studyLangs: [], score: 0 });
-  const [hobbies, setHobbies] = useState<string[]>([]);
-  const [studyLangs, setStudyLangs] = useState<string[]>([]);
-  const [useLangs, setUseLangs] = useState<string[]>([]);
+  const [hobbies, setHobbies] = useState<ListFieldItem[]>([]);
+  const [studyLangs, setStudyLangs] = useState<ListFieldItem[]>([]);
+  const [useLangs, setUseLangs] = useState<ListFieldItem[]>([]);
   const [errors, setErrors] = useState({
     name: "",
     email: "",
@@ -56,46 +92,51 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
     const newErrors = {
       name: commonFields.name === "" ? "名前を入力してください" : "",
       email: commonFields.email === "" ? "Eメールを入力してください" : "",
-      age: commonFields.age === null ? "年齢を入力してください" : "",
+      age: getAgeError(commonFields.age),
     };
+
+    const studentRoleFields = roleFields as StudentRoleFields;
+    const mentorRoleFields = roleFields as MentorRoleFields;
 
     const newRoleErrors: StudentRoleErrors | MentorRoleErrors =
       role === "student"
         ? {
-            studyMinutes:
-              (roleFields as StudentRoleFields).studyMinutes === 0
-                ? "勉強時間を入力してください"
-                : "",
-            taskCode:
-              (roleFields as StudentRoleFields).taskCode === 0
-                ? "課題番号を入力してください"
-                : "",
+            studyMinutes: getPositiveNumberError(
+              studentRoleFields.studyMinutes,
+              "勉強時間を入力してください",
+            ),
+            taskCode: getPositiveNumberError(
+              studentRoleFields.taskCode,
+              "課題番号を入力してください",
+            ),
             studyLangs:
-              studyLangs.length === 0 || studyLangs.every((lang) => lang === "")
+              studyLangs.length === 0 ||
+              !studyLangs.some((item) => item.value !== "")
                 ? "勉強中の言語を入力してください"
                 : "",
-            score:
-              (roleFields as StudentRoleFields).score === 0
-                ? "ハピネススコアを入力してください"
-                : "",
+            score: getPositiveNumberError(
+              studentRoleFields.score,
+              "ハピネススコアを入力してください",
+            ),
           }
         : {
-            experienceDays:
-              (roleFields as MentorRoleFields).experienceDays === 0
-                ? "実務経験月数を入力してください"
-                : "",
+            experienceDays: getPositiveNumberError(
+              mentorRoleFields.experienceDays,
+              "実務経験月数を入力してください",
+            ),
             useLangs:
-              useLangs.length === 0 || useLangs.every((lang) => lang === "")
+              useLangs.length === 0 ||
+              !useLangs.some((item) => item.value !== "")
                 ? "現場で使っている言語を入力してください"
                 : "",
-            availableStartCode:
-              (roleFields as MentorRoleFields).availableStartCode === 0
-                ? "担当できる課題番号（初め）を入力してください"
-                : "",
-            availableEndCode:
-              (roleFields as MentorRoleFields).availableEndCode === 0
-                ? "担当できる課題番号（終わり）を入力してください"
-                : "",
+            availableStartCode: getPositiveNumberError(
+              mentorRoleFields.availableStartCode,
+              "担当できる課題番号（初め）を入力してください",
+            ),
+            availableEndCode: getPositiveNumberError(
+              mentorRoleFields.availableEndCode,
+              "担当できる課題番号（終わり）を入力してください",
+            ),
           };
 
     setErrors(newErrors);
@@ -115,9 +156,9 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
         role,
         ...commonFields,
         age: commonFields.age as number,
-        hobbies,
+        hobbies: toListFieldValues(hobbies),
         ...studentRoleFields,
-        studyLangs,
+        studyLangs: toListFieldValues(studyLangs),
       };
       onSubmit(newUser);
     } else {
@@ -126,9 +167,9 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
         role,
         ...commonFields,
         age: commonFields.age as number,
-        hobbies,
+        hobbies: toListFieldValues(hobbies),
         ...mentorRoleFields,
-        useLangs,
+        useLangs: toListFieldValues(useLangs),
       };
       onSubmit(newUser);
     }
@@ -290,16 +331,18 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
               <div className="form-field form-field-full">
                 <label>趣味</label>
                 <div className="list-field-rows">
-                  {hobbies.map((hobby, index) => (
-                    <div key={index} className="list-field-row">
+                  {hobbies.map((hobby) => (
+                    <div key={hobby.id} className="list-field-row">
                       <input
                         type="text"
-                        value={hobby}
+                        value={hobby.value}
                         placeholder="旅行"
                         onChange={(e) =>
                           setHobbies(
-                            hobbies.map((hobby, i) =>
-                              i === index ? e.target.value : hobby,
+                            hobbies.map((item) =>
+                              item.id === hobby.id
+                                ? { ...item, value: e.target.value }
+                                : item,
                             ),
                           )
                         }
@@ -308,7 +351,9 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
                         type="button"
                         className="btn btn-sm"
                         onClick={() =>
-                          setHobbies(hobbies.filter((_, i) => i !== index))
+                          setHobbies(
+                            hobbies.filter((item) => item.id !== hobby.id),
+                          )
                         }
                       >
                         削除
@@ -318,7 +363,9 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
                   <button
                     type="button"
                     className="btn btn-sm"
-                    onClick={() => setHobbies([...hobbies, ""])}
+                    onClick={() =>
+                      setHobbies([...hobbies, createListFieldItem()])
+                    }
                   >
                     + 追加
                   </button>
@@ -408,16 +455,18 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
               <div className="form-field form-field-full">
                 <label>勉強中の言語</label>
                 <div className="list-field-rows">
-                  {studyLangs.map((studyLang, index) => (
-                    <div key={index} className="list-field-row">
+                  {studyLangs.map((studyLang) => (
+                    <div key={studyLang.id} className="list-field-row">
                       <input
                         type="text"
                         placeholder="Rails"
-                        value={studyLang}
+                        value={studyLang.value}
                         onChange={(e) => {
                           setStudyLangs(
-                            studyLangs.map((lang, i) =>
-                              i === index ? e.target.value : lang,
+                            studyLangs.map((item) =>
+                              item.id === studyLang.id
+                                ? { ...item, value: e.target.value }
+                                : item,
                             ),
                           );
                           setRoleErrors({
@@ -430,7 +479,11 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
                         type="button"
                         className="btn btn-sm"
                         onClick={() =>
-                          setStudyLangs(studyLangs.filter((_, i) => i !== index))
+                          setStudyLangs(
+                            studyLangs.filter(
+                              (item) => item.id !== studyLang.id,
+                            ),
+                          )
                         }
                       >
                         削除
@@ -440,7 +493,9 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
                   <button
                     type="button"
                     className="btn btn-sm"
-                    onClick={() => setStudyLangs([...studyLangs, ""])}
+                    onClick={() =>
+                      setStudyLangs([...studyLangs, createListFieldItem()])
+                    }
                   >
                     + 追加
                   </button>
@@ -515,16 +570,18 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
               <div className="form-field form-field-full">
                 <label>現場で使っている言語</label>
                 <div className="list-field-rows">
-                  {useLangs.map((useLang, index) => (
-                    <div key={index} className="list-field-row">
+                  {useLangs.map((useLang) => (
+                    <div key={useLang.id} className="list-field-row">
                       <input
                         type="text"
                         placeholder="Next.js"
-                        value={useLang}
+                        value={useLang.value}
                         onChange={(e) => {
                           setUseLangs(
-                            useLangs.map((useLang, i) =>
-                              i === index ? e.target.value : useLang,
+                            useLangs.map((item) =>
+                              item.id === useLang.id
+                                ? { ...item, value: e.target.value }
+                                : item,
                             ),
                           );
                           setRoleErrors({
@@ -537,7 +594,9 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
                         type="button"
                         className="btn btn-sm"
                         onClick={() =>
-                          setUseLangs(useLangs.filter((_, i) => i !== index))
+                          setUseLangs(
+                            useLangs.filter((item) => item.id !== useLang.id),
+                          )
                         }
                       >
                         削除
@@ -547,7 +606,9 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
                   <button
                     type="button"
                     className="btn btn-sm"
-                    onClick={() => setUseLangs([...useLangs, ""])}
+                    onClick={() =>
+                      setUseLangs([...useLangs, createListFieldItem()])
+                    }
                   >
                     + 追加
                   </button>
@@ -563,7 +624,11 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
         <button type="button" className="btn" onClick={onCancel}>
           キャンセル
         </button>
-        <button type="button" className="btn btn-primary" onClick={handleSubmit}>
+        <button
+          type="button"
+          className="btn btn-primary"
+          onClick={handleSubmit}
+        >
           送信
         </button>
       </div>
