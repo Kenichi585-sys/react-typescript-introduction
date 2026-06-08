@@ -1,7 +1,7 @@
 export type BaseUser = {
-  id: number;
+  id: string;
   name: string;
-  role: "student" | "mentor";
+  role: UserRole;
   email: string;
   age: number;
   postCode: string;
@@ -28,7 +28,8 @@ export type Mentor = BaseUser & {
 
 export type User = Student | Mentor;
 
-export type Tab = "all" | "student" | "mentor";
+export type UserRole = "student" | "mentor";
+export type Tab = "all" | UserRole;
 
 export type StudentSortKey = "studyMinutes" | "score";
 export type MentorSortKey = "experienceDays";

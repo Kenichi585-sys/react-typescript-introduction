@@ -2,7 +2,7 @@ import type { User } from "./types";
 
 export const USER_LIST: User[] = [
   {
-    id: 1,
+    id: "1",
     name: "鈴木太郎",
     role: "student",
     email: "test1@happiness.com",
@@ -17,7 +17,7 @@ export const USER_LIST: User[] = [
     score: 68,
   },
   {
-    id: 2,
+    id: "2",
     name: "鈴木二郎",
     role: "mentor",
     email: "test2@happiness.com",
@@ -32,7 +32,7 @@ export const USER_LIST: User[] = [
     availableEndCode: 302,
   },
   {
-    id: 3,
+    id: "3",
     name: "鈴木三郎",
     role: "student",
     email: "test3@happiness.com",
@@ -47,7 +47,7 @@ export const USER_LIST: User[] = [
     score: 90,
   },
   {
-    id: 4,
+    id: "4",
     name: "鈴木四郎",
     role: "mentor",
     email: "test4@happiness.com",
@@ -62,7 +62,7 @@ export const USER_LIST: User[] = [
     availableEndCode: 408,
   },
   {
-    id: 5,
+    id: "5",
     name: "鈴木五郎",
     role: "student",
     email: "test5@happiness.com",
@@ -77,7 +77,7 @@ export const USER_LIST: User[] = [
     score: 84,
   },
   {
-    id: 6,
+    id: "6",
     name: "鈴木六郎",
     role: "mentor",
     email: "test6@happiness.com",
@@ -92,7 +92,7 @@ export const USER_LIST: User[] = [
     availableEndCode: 302,
   },
   {
-    id: 7,
+    id: "7",
     name: "鈴木七郎",
     role: "student",
     email: "test7@happiness.com",
@@ -107,7 +107,7 @@ export const USER_LIST: User[] = [
     score: 73,
   },
   {
-    id: 8,
+    id: "8",
     name: "鈴木八郎",
     role: "mentor",
     email: "test8@happiness.com",

@@ -75,17 +75,9 @@ export const App = () => {
   }
 
   const handleAddUser = (newUser: NewUser) => {
-    if (newUser.role === "student") {
-      const id = userList.length + 1;
-      const student: Student = { ...newUser, id };
-      setUserList([...userList, student]);
-      setIsFormOpen(false);
-    } else if (newUser.role === "mentor") {
-      const id = userList.length + 1;
-      const mentor: Mentor = { ...newUser, id };
-      setUserList([...userList, mentor]);
-      setIsFormOpen(false);
-    }
+    const user = { ...newUser, id: crypto.randomUUID() };
+    setUserList([...userList, user]);
+    setIsFormOpen(false);
   };
 
   return (

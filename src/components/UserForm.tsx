@@ -7,6 +7,7 @@ import type {
   NewUser,
   StudentRoleErrors,
   StudentRoleFields,
+  UserRole,
 } from "../types";
 
 type Props = {
@@ -64,7 +65,7 @@ const getPositiveNumberError = (
 };
 
 export const UserForm = ({ onSubmit, onCancel }: Props) => {
-  const [role, setRole] = useState<"student" | "mentor">("student");
+  const [role, setRole] = useState<UserRole>("student");
   const [commonFields, setCommonFields] = useState<CommonFields>({
     name: "",
     email: "",
@@ -73,9 +74,18 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
     phone: "",
     url: "",
   });
-  const [roleFields, setRoleFields] = useState<
-    StudentRoleFields | MentorRoleFields
-  >({ studyMinutes: 0, taskCode: 0, studyLangs: [], score: 0 });
+  const [studentFields, setStudentFields] = useState<StudentRoleFields>({
+    studyMinutes: 0,
+    taskCode: 0,
+    studyLangs: [],
+    score: 0,
+  });
+  const [mentorFields, setMentorFields] = useState<MentorRoleFields>({
+    experienceDays: 0,
+    useLangs: [],
+    availableStartCode: 0,
+    availableEndCode: 0,
+  });
   const [hobbies, setHobbies] = useState<ListFieldItem[]>([]);
   const [studyLangs, setStudyLangs] = useState<ListFieldItem[]>([]);
   const [useLangs, setUseLangs] = useState<ListFieldItem[]>([]);
@@ -95,18 +105,15 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
       age: getAgeError(commonFields.age),
     };
 
-    const studentRoleFields = roleFields as StudentRoleFields;
-    const mentorRoleFields = roleFields as MentorRoleFields;
-
     const newRoleErrors: StudentRoleErrors | MentorRoleErrors =
       role === "student"
         ? {
             studyMinutes: getPositiveNumberError(
-              studentRoleFields.studyMinutes,
+              studentFields.studyMinutes,
               "勉強時間を入力してください",
             ),
             taskCode: getPositiveNumberError(
-              studentRoleFields.taskCode,
+              studentFields.taskCode,
               "課題番号を入力してください",
             ),
             studyLangs:
@@ -115,13 +122,13 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
                 ? "勉強中の言語を入力してください"
                 : "",
             score: getPositiveNumberError(
-              studentRoleFields.score,
+              studentFields.score,
               "ハピネススコアを入力してください",
             ),
           }
         : {
             experienceDays: getPositiveNumberError(
-              mentorRoleFields.experienceDays,
+              mentorFields.experienceDays,
               "実務経験月数を入力してください",
             ),
             useLangs:
@@ -130,11 +137,11 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
                 ? "現場で使っている言語を入力してください"
                 : "",
             availableStartCode: getPositiveNumberError(
-              mentorRoleFields.availableStartCode,
+              mentorFields.availableStartCode,
               "担当できる課題番号（初め）を入力してください",
             ),
             availableEndCode: getPositiveNumberError(
-              mentorRoleFields.availableEndCode,
+              mentorFields.availableEndCode,
               "担当できる課題番号（終わり）を入力してください",
             ),
           };
@@ -151,24 +158,22 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
     }
 
     if (role === "student") {
-      const studentRoleFields = roleFields as StudentRoleFields;
       const newUser: NewStudent = {
         role,
         ...commonFields,
         age: commonFields.age as number,
         hobbies: toListFieldValues(hobbies),
-        ...studentRoleFields,
+        ...studentFields,
         studyLangs: toListFieldValues(studyLangs),
       };
       onSubmit(newUser);
     } else {
-      const mentorRoleFields = roleFields as MentorRoleFields;
       const newUser: NewMentor = {
         role,
         ...commonFields,
         age: commonFields.age as number,
         hobbies: toListFieldValues(hobbies),
-        ...mentorRoleFields,
+        ...mentorFields,
         useLangs: toListFieldValues(useLangs),
       };
       onSubmit(newUser);
@@ -188,19 +193,12 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
             className={`btn ${role === "student" ? "btn-active" : ""}`}
             onClick={() => {
               setRole("student");
-              setRoleFields({
-                studyMinutes: 0,
-                taskCode: 0,
-                studyLangs: [],
-                score: 0,
-              });
               setRoleErrors({
                 studyMinutes: "",
                 taskCode: "",
                 studyLangs: "",
                 score: "",
               });
-              setStudyLangs([]);
             }}
           >
             生徒
@@ -210,19 +208,12 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
             className={`btn ${role === "mentor" ? "btn-active" : ""}`}
             onClick={() => {
               setRole("mentor");
-              setRoleFields({
-                experienceDays: 0,
-                useLangs: [],
-                availableStartCode: 0,
-                availableEndCode: 0,
-              });
               setRoleErrors({
                 experienceDays: "",
                 useLangs: "",
                 availableStartCode: "",
                 availableEndCode: "",
               });
-              setUseLangs([]);
             }}
           >
             メンター
@@ -240,6 +231,7 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
                 id="name"
                 type="text"
                 placeholder="例：山田太郎"
+                value={commonFields.name}
                 onChange={(e) => {
                   setCommonFields({
                     ...commonFields,
@@ -259,6 +251,7 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
                 id="email"
                 type="text"
                 placeholder="例：a@gmail.com"
+                value={commonFields.email}
                 onChange={(e) => {
                   setCommonFields({
                     ...commonFields,
@@ -278,6 +271,7 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
                 id="age"
                 type="number"
                 placeholder="例：30"
+                value={commonFields.age ?? ""}
                 onChange={(e) => {
                   setCommonFields({
                     ...commonFields,
@@ -304,6 +298,7 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
                   id="postCode"
                   type="text"
                   placeholder="例：000-0000"
+                  value={commonFields.postCode}
                   onChange={(e) =>
                     setCommonFields({
                       ...commonFields,
@@ -319,6 +314,7 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
                   id="phone"
                   type="text"
                   placeholder="例：08012345678"
+                  value={commonFields.phone}
                   onChange={(e) =>
                     setCommonFields({
                       ...commonFields,
@@ -378,6 +374,7 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
                   id="url"
                   type="text"
                   placeholder="例：https://xxx.com"
+                  value={commonFields.url}
                   onChange={(e) =>
                     setCommonFields({
                       ...commonFields,
@@ -401,9 +398,14 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
                   id="studyMinutes"
                   type="number"
                   placeholder="例：100"
+                  value={
+                    studentFields.studyMinutes === 0
+                      ? ""
+                      : studentFields.studyMinutes
+                  }
                   onChange={(e) => {
-                    setRoleFields({
-                      ...(roleFields as StudentRoleFields),
+                    setStudentFields({
+                      ...studentFields,
                       studyMinutes: Number(e.target.value),
                     });
                     setRoleErrors({
@@ -420,9 +422,12 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
                   id="taskCode"
                   type="number"
                   placeholder="例：101"
+                  value={
+                    studentFields.taskCode === 0 ? "" : studentFields.taskCode
+                  }
                   onChange={(e) => {
-                    setRoleFields({
-                      ...(roleFields as StudentRoleFields),
+                    setStudentFields({
+                      ...studentFields,
                       taskCode: Number(e.target.value),
                     });
                     setRoleErrors({
@@ -439,9 +444,10 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
                   id="score"
                   type="number"
                   placeholder="例：70"
+                  value={studentFields.score === 0 ? "" : studentFields.score}
                   onChange={(e) => {
-                    setRoleFields({
-                      ...(roleFields as StudentRoleFields),
+                    setStudentFields({
+                      ...studentFields,
                       score: Number(e.target.value),
                     });
                     setRoleErrors({
@@ -516,9 +522,14 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
                   id="experienceDays"
                   type="number"
                   placeholder="例：1000"
+                  value={
+                    mentorFields.experienceDays === 0
+                      ? ""
+                      : mentorFields.experienceDays
+                  }
                   onChange={(e) => {
-                    setRoleFields({
-                      ...(roleFields as MentorRoleFields),
+                    setMentorFields({
+                      ...mentorFields,
                       experienceDays: Number(e.target.value),
                     });
                     setRoleErrors({
@@ -535,9 +546,14 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
                   id="availableStartCode"
                   type="number"
                   placeholder="101"
+                  value={
+                    mentorFields.availableStartCode === 0
+                      ? ""
+                      : mentorFields.availableStartCode
+                  }
                   onChange={(e) => {
-                    setRoleFields({
-                      ...(roleFields as MentorRoleFields),
+                    setMentorFields({
+                      ...mentorFields,
                       availableStartCode: Number(e.target.value),
                     });
                     setRoleErrors({
@@ -554,9 +570,14 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
                   id="availableEndCode"
                   type="number"
                   placeholder="201"
+                  value={
+                    mentorFields.availableEndCode === 0
+                      ? ""
+                      : mentorFields.availableEndCode
+                  }
                   onChange={(e) => {
-                    setRoleFields({
-                      ...(roleFields as MentorRoleFields),
+                    setMentorFields({
+                      ...mentorFields,
                       availableEndCode: Number(e.target.value),
                     });
                     setRoleErrors({
