@@ -13,6 +13,32 @@ import {
 } from "./types";
 import { UserForm } from "./components/UserForm";
 
+const TAB_ITEMS = [
+  { value: "all", label: "全員" },
+  { value: "student", label: "生徒のみ" },
+  { value: "mentor", label: "メンターのみ" },
+] as const satisfies readonly { value: Tab; label: string }[];
+
+const SORT_ITEMS = [
+  { tab: "student", value: "studyMinutes", label: "勉強時間" },
+  { tab: "student", value: "score", label: "ハピネススコア" },
+  { tab: "mentor", value: "experienceDays", label: "実務経験月数" },
+] as const satisfies readonly {
+  tab: Exclude<Tab, "all">;
+  value: SortKey;
+  label: string;
+}[];
+
+const FILTER_ITEMS: {
+  value: FilterKey;
+  label: string;
+  showFor: Tab[];
+}[] = [
+  { value: "hobbies", label: "趣味", showFor: ["all", "student", "mentor"] },
+  { value: "studyLangs", label: "勉強中の言語", showFor: ["student"] },
+  { value: "useLangs", label: "現場で使っている言語", showFor: ["mentor"] },
+];
+
 export const App = () => {
   const [tab, setTab] = useState<Tab>("all");
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
@@ -86,27 +112,16 @@ export const App = () => {
         <div className="toolbar-row">
           <span className="toolbar-label">表示</span>
           <div className="toolbar-actions">
-            <button
-              type="button"
-              className={`btn ${tab === "all" ? "btn-active" : ""}`}
-              onClick={() => switchTab("all")}
-            >
-              全員
-            </button>
-            <button
-              type="button"
-              className={`btn ${tab === "student" ? "btn-active" : ""}`}
-              onClick={() => switchTab("student")}
-            >
-              生徒のみ
-            </button>
-            <button
-              type="button"
-              className={`btn ${tab === "mentor" ? "btn-active" : ""}`}
-              onClick={() => switchTab("mentor")}
-            >
-              メンターのみ
-            </button>
+            {TAB_ITEMS.map(({ value, label }) => (
+              <button
+                key={value}
+                type="button"
+                className={`btn ${tab === value ? "btn-active" : ""}`}
+                onClick={() => switchTab(value)}
+              >
+                {label}
+              </button>
+            ))}
             <button
               type="button"
               className="btn btn-primary"
@@ -120,32 +135,17 @@ export const App = () => {
           <div className="toolbar-row">
             <span className="toolbar-label">並び替え</span>
             <div className="toolbar-actions">
-              {tab === "student" && (
-                <>
+              {SORT_ITEMS.filter((item) => item.tab === tab).map(
+                ({ value, label }) => (
                   <button
+                    key={value}
                     type="button"
-                    className={`btn ${sortKey === "studyMinutes" ? "btn-active" : ""}`}
-                    onClick={() => setSortKey("studyMinutes")}
+                    className={`btn ${sortKey === value ? "btn-active" : ""}`}
+                    onClick={() => setSortKey(value)}
                   >
-                    勉強時間
+                    {label}
                   </button>
-                  <button
-                    type="button"
-                    className={`btn ${sortKey === "score" ? "btn-active" : ""}`}
-                    onClick={() => setSortKey("score")}
-                  >
-                    ハピネススコア
-                  </button>
-                </>
-              )}
-              {tab === "mentor" && (
-                <button
-                  type="button"
-                  className={`btn ${sortKey === "experienceDays" ? "btn-active" : ""}`}
-                  onClick={() => setSortKey("experienceDays")}
-                >
-                  実務経験月数
-                </button>
+                ),
               )}
               {sortKey !== null && (
                 <button
@@ -162,39 +162,20 @@ export const App = () => {
         <div className="toolbar-row">
           <span className="toolbar-label">絞り込み</span>
           <div className="toolbar-actions">
-            <button
-              type="button"
-              className={`btn ${filterKey === "hobbies" ? "btn-active" : ""}`}
-              onClick={() => {
-                setFilterKey("hobbies");
-                setFilterWord("");
-              }}
-            >
-              趣味
-            </button>
-            {tab === "student" && (
-              <button
-                type="button"
-                className={`btn ${filterKey === "studyLangs" ? "btn-active" : ""}`}
-                onClick={() => {
-                  setFilterKey("studyLangs");
-                  setFilterWord("");
-                }}
-              >
-                勉強中の言語
-              </button>
-            )}
-            {tab === "mentor" && (
-              <button
-                type="button"
-                className={`btn ${filterKey === "useLangs" ? "btn-active" : ""}`}
-                onClick={() => {
-                  setFilterKey("useLangs");
-                  setFilterWord("");
-                }}
-              >
-                現場言語
-              </button>
+            {FILTER_ITEMS.filter((item) => item.showFor.includes(tab)).map(
+              ({ value, label }) => (
+                <button
+                  key={value}
+                  type="button"
+                  className={`btn ${filterKey === value ? "btn-active" : ""}`}
+                  onClick={() => {
+                    setFilterKey(value);
+                    setFilterWord("");
+                  }}
+                >
+                  {label}
+                </button>
+              ),
             )}
             {filterKey !== null && (
               <>

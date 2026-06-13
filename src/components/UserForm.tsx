@@ -94,9 +94,18 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
     email: "",
     age: "",
   });
-  const [roleErrors, setRoleErrors] = useState<
-    StudentRoleErrors | MentorRoleErrors
-  >({ studyMinutes: "", taskCode: "", studyLangs: "", score: "" });
+  const [studentErrors, setStudentErrors] = useState<StudentRoleErrors>({
+    studyMinutes: "",
+    taskCode: "",
+    studyLangs: "",
+    score: "",
+  });
+  const [mentorErrors, setMentorErrors] = useState<MentorRoleErrors>({
+    experienceDays: "",
+    useLangs: "",
+    availableStartCode: "",
+    availableEndCode: "",
+  });
 
   const handleSubmit = () => {
     const newErrors = {
@@ -105,64 +114,69 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
       age: getAgeError(commonFields.age),
     };
 
-    const newRoleErrors: StudentRoleErrors | MentorRoleErrors =
-      role === "student"
-        ? {
-            studyMinutes: getPositiveNumberError(
-              studentFields.studyMinutes,
-              "勉強時間を入力してください",
-            ),
-            taskCode: getPositiveNumberError(
-              studentFields.taskCode,
-              "課題番号を入力してください",
-            ),
-            studyLangs:
-              studyLangs.length === 0 ||
-              !studyLangs.some((item) => item.value !== "")
-                ? "勉強中の言語を入力してください"
-                : "",
-            score: getPositiveNumberError(
-              studentFields.score,
-              "ハピネススコアを入力してください",
-            ),
-          }
-        : {
-            experienceDays: getPositiveNumberError(
-              mentorFields.experienceDays,
-              "実務経験月数を入力してください",
-            ),
-            useLangs:
-              useLangs.length === 0 ||
-              !useLangs.some((item) => item.value !== "")
-                ? "現場で使っている言語を入力してください"
-                : "",
-            availableStartCode: getPositiveNumberError(
-              mentorFields.availableStartCode,
-              "担当できる課題番号（初め）を入力してください",
-            ),
-            availableEndCode: getPositiveNumberError(
-              mentorFields.availableEndCode,
-              "担当できる課題番号（終わり）を入力してください",
-            ),
-          };
+    const newStudentErrors: StudentRoleErrors = {
+      studyMinutes: getPositiveNumberError(
+        studentFields.studyMinutes,
+        "勉強時間を入力してください",
+      ),
+      taskCode: getPositiveNumberError(
+        studentFields.taskCode,
+        "課題番号を入力してください",
+      ),
+      studyLangs:
+        studyLangs.length === 0 ||
+        !studyLangs.some((item) => item.value !== "")
+          ? "勉強中の言語を入力してください"
+          : "",
+      score: getPositiveNumberError(
+        studentFields.score,
+        "ハピネススコアを入力してください",
+      ),
+    };
+
+    const newMentorErrors: MentorRoleErrors = {
+      experienceDays: getPositiveNumberError(
+        mentorFields.experienceDays,
+        "実務経験月数を入力してください",
+      ),
+      useLangs:
+        useLangs.length === 0 || !useLangs.some((item) => item.value !== "")
+          ? "現場で使っている言語を入力してください"
+          : "",
+      availableStartCode: getPositiveNumberError(
+        mentorFields.availableStartCode,
+        "担当できる課題番号（初め）を入力してください",
+      ),
+      availableEndCode: getPositiveNumberError(
+        mentorFields.availableEndCode,
+        "担当できる課題番号（終わり）を入力してください",
+      ),
+    };
 
     setErrors(newErrors);
-    setRoleErrors(newRoleErrors);
+    setStudentErrors(newStudentErrors);
+    setMentorErrors(newMentorErrors);
 
+    const activeRoleErrors =
+      role === "student" ? newStudentErrors : newMentorErrors;
     const hasErrors =
       Object.values(newErrors).some((error) => error !== "") ||
-      Object.values(newRoleErrors).some((error) => error !== "");
+      Object.values(activeRoleErrors).some((error) => error !== "");
 
     if (hasErrors) {
       return;
     }
 
+    const base = {
+      ...commonFields,
+      age: commonFields.age as number,
+      hobbies: toListFieldValues(hobbies),
+    };
+
     if (role === "student") {
       const newUser: NewStudent = {
         role,
-        ...commonFields,
-        age: commonFields.age as number,
-        hobbies: toListFieldValues(hobbies),
+        ...base,
         ...studentFields,
         studyLangs: toListFieldValues(studyLangs),
       };
@@ -170,18 +184,13 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
     } else {
       const newUser: NewMentor = {
         role,
-        ...commonFields,
-        age: commonFields.age as number,
-        hobbies: toListFieldValues(hobbies),
+        ...base,
         ...mentorFields,
         useLangs: toListFieldValues(useLangs),
       };
       onSubmit(newUser);
     }
   };
-
-  const studentRoleErrors = roleErrors as StudentRoleErrors;
-  const mentorRoleErrors = roleErrors as MentorRoleErrors;
 
   return (
     <div className="form-panel">
@@ -193,7 +202,7 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
             className={`btn ${role === "student" ? "btn-active" : ""}`}
             onClick={() => {
               setRole("student");
-              setRoleErrors({
+              setStudentErrors({
                 studyMinutes: "",
                 taskCode: "",
                 studyLangs: "",
@@ -208,7 +217,7 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
             className={`btn ${role === "mentor" ? "btn-active" : ""}`}
             onClick={() => {
               setRole("mentor");
-              setRoleErrors({
+              setMentorErrors({
                 experienceDays: "",
                 useLangs: "",
                 availableStartCode: "",
@@ -408,13 +417,13 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
                       ...studentFields,
                       studyMinutes: Number(e.target.value),
                     });
-                    setRoleErrors({
-                      ...studentRoleErrors,
+                    setStudentErrors({
+                      ...studentErrors,
                       studyMinutes: "",
                     });
                   }}
                 />
-                <FieldError message={studentRoleErrors.studyMinutes} />
+                <FieldError message={studentErrors.studyMinutes} />
               </div>
               <div className="form-field">
                 <label htmlFor="taskCode">課題番号</label>
@@ -430,13 +439,13 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
                       ...studentFields,
                       taskCode: Number(e.target.value),
                     });
-                    setRoleErrors({
-                      ...studentRoleErrors,
+                    setStudentErrors({
+                      ...studentErrors,
                       taskCode: "",
                     });
                   }}
                 />
-                <FieldError message={studentRoleErrors.taskCode} />
+                <FieldError message={studentErrors.taskCode} />
               </div>
               <div className="form-field">
                 <label htmlFor="score">ハピネススコア</label>
@@ -450,13 +459,13 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
                       ...studentFields,
                       score: Number(e.target.value),
                     });
-                    setRoleErrors({
-                      ...studentRoleErrors,
+                    setStudentErrors({
+                      ...studentErrors,
                       score: "",
                     });
                   }}
                 />
-                <FieldError message={studentRoleErrors.score} />
+                <FieldError message={studentErrors.score} />
               </div>
               <div className="form-field form-field-full">
                 <label>勉強中の言語</label>
@@ -475,8 +484,8 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
                                 : item,
                             ),
                           );
-                          setRoleErrors({
-                            ...studentRoleErrors,
+                          setStudentErrors({
+                            ...studentErrors,
                             studyLangs: "",
                           });
                         }}
@@ -506,7 +515,7 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
                     + 追加
                   </button>
                 </div>
-                <FieldError message={studentRoleErrors.studyLangs} />
+                <FieldError message={studentErrors.studyLangs} />
               </div>
             </div>
           </section>
@@ -532,20 +541,20 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
                       ...mentorFields,
                       experienceDays: Number(e.target.value),
                     });
-                    setRoleErrors({
-                      ...mentorRoleErrors,
+                    setMentorErrors({
+                      ...mentorErrors,
                       experienceDays: "",
                     });
                   }}
                 />
-                <FieldError message={mentorRoleErrors.experienceDays} />
+                <FieldError message={mentorErrors.experienceDays} />
               </div>
               <div className="form-field">
                 <label htmlFor="availableStartCode">担当課題（初め）</label>
                 <input
                   id="availableStartCode"
                   type="number"
-                  placeholder="101"
+                  placeholder="例：101"
                   value={
                     mentorFields.availableStartCode === 0
                       ? ""
@@ -556,20 +565,20 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
                       ...mentorFields,
                       availableStartCode: Number(e.target.value),
                     });
-                    setRoleErrors({
-                      ...mentorRoleErrors,
+                    setMentorErrors({
+                      ...mentorErrors,
                       availableStartCode: "",
                     });
                   }}
                 />
-                <FieldError message={mentorRoleErrors.availableStartCode} />
+                <FieldError message={mentorErrors.availableStartCode} />
               </div>
               <div className="form-field">
                 <label htmlFor="availableEndCode">担当課題（終わり）</label>
                 <input
                   id="availableEndCode"
                   type="number"
-                  placeholder="201"
+                  placeholder="例：201"
                   value={
                     mentorFields.availableEndCode === 0
                       ? ""
@@ -580,13 +589,13 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
                       ...mentorFields,
                       availableEndCode: Number(e.target.value),
                     });
-                    setRoleErrors({
-                      ...mentorRoleErrors,
+                    setMentorErrors({
+                      ...mentorErrors,
                       availableEndCode: "",
                     });
                   }}
                 />
-                <FieldError message={mentorRoleErrors.availableEndCode} />
+                <FieldError message={mentorErrors.availableEndCode} />
               </div>
               <div className="form-field form-field-full">
                 <label>現場で使っている言語</label>
@@ -605,8 +614,8 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
                                 : item,
                             ),
                           );
-                          setRoleErrors({
-                            ...mentorRoleErrors,
+                          setMentorErrors({
+                            ...mentorErrors,
                             useLangs: "",
                           });
                         }}
@@ -634,7 +643,7 @@ export const UserForm = ({ onSubmit, onCancel }: Props) => {
                     + 追加
                   </button>
                 </div>
-                <FieldError message={mentorRoleErrors.useLangs} />
+                <FieldError message={mentorErrors.useLangs} />
               </div>
             </div>
           </section>
