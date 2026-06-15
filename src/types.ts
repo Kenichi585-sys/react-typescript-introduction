@@ -1,0 +1,50 @@
+export type BaseUser = {
+  id: string;
+  name: string;
+  role: UserRole;
+  email: string;
+  age: number;
+  postCode: string;
+  phone: string;
+  hobbies: string[];
+  url: string;
+};
+
+export type Student = BaseUser & {
+  role: "student";
+  studyMinutes: number;
+  taskCode: number;
+  studyLangs: string[];
+  score: number;
+};
+
+export type Mentor = BaseUser & {
+  role: "mentor";
+  experienceDays: number;
+  useLangs: string[];
+  availableStartCode: number;
+  availableEndCode: number;
+};
+
+export type User = Student | Mentor;
+
+export type UserRole = "student" | "mentor";
+export type Tab = "all" | UserRole;
+
+export type StudentSortKey = "studyMinutes" | "score";
+export type MentorSortKey = "experienceDays";
+export type SortKey = StudentSortKey | MentorSortKey;
+
+export type SortOrder = "asc" | "desc";
+
+export type NewStudent = Omit<Student, "id">;
+export type NewMentor = Omit<Mentor, "id">;
+export type NewUser = NewStudent | NewMentor;
+
+export type StudentRoleFields = Omit<NewStudent, keyof BaseUser>;
+export type MentorRoleFields = Omit<NewMentor, keyof BaseUser>;
+
+export type FilterKey = "hobbies" | "studyLangs" | "useLangs";
+
+export type StudentRoleErrors = Record<keyof StudentRoleFields, string>;
+export type MentorRoleErrors = Record<keyof MentorRoleFields, string>;

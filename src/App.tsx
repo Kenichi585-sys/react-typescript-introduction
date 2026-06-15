@@ -1,122 +1,123 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useState } from "react";
+import { Toolbar } from "./components/Toolbar";
+import { UserTable } from "./components/UserTable";
+import { USER_LIST } from "./data";
+import {
+  type FilterKey,
+  type Mentor,
+  type NewUser,
+  type SortKey,
+  type SortOrder,
+  type Student,
+  type Tab,
+  type User,
+} from "./types";
+import { UserForm } from "./components/UserForm";
 
-function App() {
-  const [count, setCount] = useState(0)
+export const App = () => {
+  const [tab, setTab] = useState<Tab>("all");
+  const [sortKey, setSortKey] = useState<SortKey | null>(null);
+  const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
+  const [userList, setUserList] = useState<User[]>(USER_LIST);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [filterKey, setFilterKey] = useState<FilterKey | null>(null);
+  const [filterWord, setFilterWord] = useState<string>("");
+
+  const switchTab = (nextTab: Tab) => {
+    setTab(nextTab);
+    setSortKey(null);
+    setFilterKey(null);
+    setFilterWord("");
+  };
+
+  const handleToggleSortOrder = () => {
+    setSortOrder((current) => (current === "asc" ? "desc" : "asc"));
+  };
+
+  let result: User[] = userList;
+  if (tab === "student") {
+    result = userList.filter(
+      (user): user is Student => user.role === "student",
+    );
+  } else if (tab === "mentor") {
+    result = userList.filter((user): user is Mentor => user.role === "mentor");
+  }
+
+  if (sortKey !== null) {
+    result = [...result].sort((a, b) =>
+      sortOrder === "asc"
+        ? (a as any)[sortKey] - (b as any)[sortKey]
+        : (b as any)[sortKey] - (a as any)[sortKey],
+    );
+  }
+
+  if (filterWord !== "") {
+    if (filterKey === "hobbies") {
+      result = result.filter((user) =>
+        user.hobbies.some((hobby) =>
+          hobby.toLowerCase().includes(filterWord.toLowerCase()),
+        ),
+      );
+    } else if (filterKey === "studyLangs") {
+      result = result.filter((user) => {
+        if (user.role !== "student") return false;
+        return user.studyLangs.some((lang) =>
+          lang.toLowerCase().includes(filterWord.toLowerCase()),
+        );
+      });
+    } else if (filterKey === "useLangs") {
+      result = result.filter((user) => {
+        if (user.role !== "mentor") return false;
+        return user.useLangs.some((lang) =>
+          lang.toLowerCase().includes(filterWord.toLowerCase()),
+        );
+      });
+    }
+  }
+
+  const handleAddUser = (newUser: NewUser) => {
+    const user = { ...newUser, id: crypto.randomUUID() };
+    setUserList([...userList, user]);
+    setIsFormOpen(false);
+  };
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div className="app">
+      <Toolbar
+        tab={tab}
+        sortKey={sortKey}
+        sortOrder={sortOrder}
+        filterKey={filterKey}
+        filterWord={filterWord}
+        onTabChange={switchTab}
+        onSortKeyChange={setSortKey}
+        onToggleSortOrder={handleToggleSortOrder}
+        onFilterKeySelect={(key) => {
+          setFilterKey(key);
+          setFilterWord("");
+        }}
+        onFilterWordChange={setFilterWord}
+        onClearFilter={() => {
+          setFilterKey(null);
+          setFilterWord("");
+        }}
+        onOpenForm={() => setIsFormOpen(true)}
+      />
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+      {isFormOpen && (
+        <div className="modal-backdrop">
+          <div className="modal">
+            <UserForm
+              onSubmit={handleAddUser}
+              onCancel={() => setIsFormOpen(false)}
+            />
+          </div>
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+      )}
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
-}
-
-export default App
+      <div className="table-wrap">
+        <UserTable users={result} />
+      </div>
+    </div>
+  );
+};
